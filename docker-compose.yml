@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  saga:
+    build: .
+    image: bantads_saga
+    restart: on-failure
+    container_name: bantads_saga_container
+    command: docker run -p 8080:8080 bantads_saga
+    volumes:
+      - .:/app
+      - static_data:/app/static
+    networks:
+      - saga-network
+    ports:
+      - "8080:8080"
+
+volumes:
+  static_data:
+
+networks:
+  saga-network:
+    external: false
