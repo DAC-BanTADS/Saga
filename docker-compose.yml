@@ -12,6 +12,7 @@ services:
       - static_data:/app/static
     networks:
       - saga-network
+      - rabbitmq
     ports:
       - "8080:8080"
 
@@ -21,3 +22,5 @@ volumes:
 networks:
   saga-network:
     external: false
+  rabbitmq:
+    external: true
