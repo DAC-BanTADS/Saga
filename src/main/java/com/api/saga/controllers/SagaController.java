@@ -1,11 +1,9 @@
 package com.api.saga.controllers;
 
-import com.api.saga.amqp.ClienteProducer;
-import com.api.saga.amqp.ClienteTransfer;
-import com.api.saga.amqp.ContaProducer;
-import com.api.saga.amqp.ContaTransfer;
+import com.api.saga.amqp.*;
 import com.api.saga.dtos.ClienteDto;
 import com.api.saga.dtos.ContaDto;
+import com.api.saga.dtos.GerenteDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +16,8 @@ public class SagaController {
     private ClienteProducer clienteProducer;
     @Autowired
     private ContaProducer contaProducer;
+    @Autowired
+    private GerenteProducer gerenteProducer;
 
     @PostMapping("/cliente")
     public ResponseEntity<Object> saveCliente(@RequestBody ClienteDto clienteDto) {
@@ -49,5 +49,21 @@ public class SagaController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getCause().getMessage());
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao criar a conta");
+    }
+
+    @PostMapping("/gerente")
+    public ResponseEntity<Object> saveGerente(@RequestBody GerenteDto gerenteDto) {
+        try {
+            GerenteTransfer gerenteTransfer = gerenteProducer.sendAndReceive(gerenteDto, "save-gerente");
+
+            if (gerenteTransfer.getAction().equals("success-gerente")) {
+                return ResponseEntity.status(HttpStatus.CREATED).body("Gerente criado com sucesso!");
+            } else if (gerenteTransfer.getAction().equals("failed-gerente")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Houve um erro na criação do gerente.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getCause().getMessage());
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao criar o gerente");
     }
 }
