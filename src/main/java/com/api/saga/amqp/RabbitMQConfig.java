@@ -21,16 +21,28 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    @Qualifier("conta")
+    public Queue contaQueue() {
+        return new Queue("conta");
+    }
+
+    @Bean
     public ClienteProducer clienteProducer() {
         return new ClienteProducer();
     }
 
+    @Bean
+    public ContaProducer contaProducer() {
+        return new ContaProducer();
+    }
+
     public DefaultClassMapper classMapper() {
         DefaultClassMapper classMapper = new DefaultClassMapper();
-        Map<String, Class<?>> idClassMapping = new HashMap();
+        Map<String, Class<?>> idClassMapping = new HashMap<>();
         classMapper.setTrustedPackages("*");
 
         idClassMapping.put("com.api.cliente.amqp.ClienteTransfer", ClienteTransfer.class);
+        idClassMapping.put("com.api.conta.amqp.ContaTransfer", ContaTransfer.class);
 
         classMapper.setIdClassMapping(idClassMapping);
 

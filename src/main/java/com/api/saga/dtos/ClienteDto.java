@@ -19,10 +19,6 @@ public class ClienteDto {
     @NotNull
     private double salario;
 
-    /*
-     * GETTERS E SETTERS
-     * */
-
     public String getCpf() {
         return cpf;
     }
