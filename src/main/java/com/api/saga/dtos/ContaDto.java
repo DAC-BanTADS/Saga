@@ -2,7 +2,7 @@ package com.api.saga.dtos;
 
 import jakarta.validation.constraints.NotNull;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.UUID;
 
 public class ContaDto {
@@ -11,7 +11,7 @@ public class ContaDto {
     @NotNull
     private UUID idGerente;
     @NotNull
-    private LocalDateTime dataCriacao;
+    private Date dataCriacao;
     @NotNull
     private double limite;
     @NotNull
@@ -35,11 +35,11 @@ public class ContaDto {
         this.idGerente = idGerente;
     }
 
-    public LocalDateTime getDataCriacao() {
+    public Date getDataCriacao() {
         return dataCriacao;
     }
 
-    public void setDataCriacao(LocalDateTime dataCriacao) {
+    public void setDataCriacao(Date dataCriacao) {
         this.dataCriacao = dataCriacao;
     }
 

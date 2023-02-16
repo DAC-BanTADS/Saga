@@ -6,6 +6,7 @@ import java.io.Serializable;
 public class GerenteTransfer implements Serializable {
     GerenteDto gerenteDto;
     String action;
+    String message;
 
     public GerenteTransfer() {
     }
@@ -29,5 +30,13 @@ public class GerenteTransfer implements Serializable {
 
     public void setAction(String action) {
         this.action = action;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

@@ -6,6 +6,7 @@ import com.api.saga.dtos.ClienteDto;
 public class ClienteTransfer implements Serializable {
     ClienteDto clienteDto;
     String action;
+    String message;
 
     public ClienteTransfer() {
     }
@@ -22,4 +23,12 @@ public class ClienteTransfer implements Serializable {
     public String getAction() { return this.action; }
 
     public void setAction(String action) { this.action = action; }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
 }

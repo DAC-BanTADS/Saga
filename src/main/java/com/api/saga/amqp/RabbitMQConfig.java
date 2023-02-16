@@ -27,6 +27,12 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    @Qualifier("gerente")
+    public Queue gerenteQueue() {
+        return new Queue("gerente");
+    }
+
+    @Bean
     public ClienteProducer clienteProducer() {
         return new ClienteProducer();
     }
@@ -36,6 +42,11 @@ public class RabbitMQConfig {
         return new ContaProducer();
     }
 
+    @Bean
+    public GerenteProducer gerenteProducer() {
+        return new GerenteProducer();
+    }
+
     public DefaultClassMapper classMapper() {
         DefaultClassMapper classMapper = new DefaultClassMapper();
         Map<String, Class<?>> idClassMapping = new HashMap<>();
@@ -43,6 +54,7 @@ public class RabbitMQConfig {
 
         idClassMapping.put("com.api.cliente.amqp.ClienteTransfer", ClienteTransfer.class);
         idClassMapping.put("com.api.conta.amqp.ContaTransfer", ContaTransfer.class);
+        idClassMapping.put("com.api.gerente.amqp.GerenteTransfer", GerenteTransfer.class);
 
         classMapper.setIdClassMapping(idClassMapping);
 

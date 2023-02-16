@@ -27,10 +27,10 @@ public class SagaController {
             if (clienteTransfer.getAction().equals("success-cliente")) {
                 return ResponseEntity.status(HttpStatus.CREATED).body("Cliente criado com sucesso!");
             } else if (clienteTransfer.getAction().equals("failed-cliente")) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Houve um erro na criação do cliente.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(clienteTransfer.getMessage());
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getCause().getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.toString());
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao criar o cliente");
     }
@@ -43,10 +43,10 @@ public class SagaController {
             if (contaTransfer.getAction().equals("success-conta")) {
                 return ResponseEntity.status(HttpStatus.CREATED).body("Conta criada com sucesso!");
             } else if (contaTransfer.getAction().equals("failed-conta")) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Houve um erro na criação da conta.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(contaTransfer.getMessage());
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getCause().getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.toString());
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao criar a conta");
     }
@@ -59,10 +59,10 @@ public class SagaController {
             if (gerenteTransfer.getAction().equals("success-gerente")) {
                 return ResponseEntity.status(HttpStatus.CREATED).body("Gerente criado com sucesso!");
             } else if (gerenteTransfer.getAction().equals("failed-gerente")) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Houve um erro na criação do gerente.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(gerenteTransfer.getMessage());
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getCause().getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.toString());
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao criar o gerente");
     }
