@@ -13,7 +13,6 @@ import java.util.Map;
 
 @Configuration
 public class RabbitMQConfig {
-
     @Bean
     @Qualifier("cliente")
     public Queue clientQueue() {
@@ -39,6 +38,12 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    @Qualifier("user")
+    public Queue userQueue() {
+        return new Queue("user");
+    }
+
+    @Bean
     public ClienteProducer clienteProducer() {
         return new ClienteProducer();
     }
@@ -58,6 +63,11 @@ public class RabbitMQConfig {
         return new TransacaoProducer();
     }
 
+    @Bean
+    public UserProducer userProducer() {
+        return new UserProducer();
+    }
+
     public DefaultClassMapper classMapper() {
         DefaultClassMapper classMapper = new DefaultClassMapper();
         Map<String, Class<?>> idClassMapping = new HashMap<>();
@@ -67,6 +77,7 @@ public class RabbitMQConfig {
         idClassMapping.put("com.api.conta.amqp.ContaTransfer", ContaTransfer.class);
         idClassMapping.put("com.api.gerente.amqp.GerenteTransfer", GerenteTransfer.class);
         idClassMapping.put("com.api.transacao.amqp.TransacaoTransfer", TransacaoTransfer.class);
+        idClassMapping.put("com.api.user.amqp.UserTransfer", UserTransfer.class);
 
         classMapper.setIdClassMapping(idClassMapping);
 
