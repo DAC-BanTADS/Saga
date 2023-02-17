@@ -4,6 +4,7 @@ import com.api.saga.amqp.*;
 import com.api.saga.dtos.ClienteDto;
 import com.api.saga.dtos.ContaDto;
 import com.api.saga.dtos.GerenteDto;
+import com.api.saga.dtos.TransacaoDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,8 @@ public class SagaController {
     private ContaProducer contaProducer;
     @Autowired
     private GerenteProducer gerenteProducer;
+    @Autowired
+    private TransacaoProducer transacaoProducer;
 
     @PostMapping("/cliente")
     public ResponseEntity<Object> saveCliente(@RequestBody ClienteDto clienteDto) {
@@ -65,5 +68,21 @@ public class SagaController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.toString());
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao criar o gerente");
+    }
+
+    @PostMapping("/transacao")
+    public ResponseEntity<Object> saveTransacao(@RequestBody TransacaoDto transacaoDto) {
+        try {
+            TransacaoTransfer transacaoTransfer = transacaoProducer.sendAndReceive(transacaoDto, "save-transacao");
+
+            if (transacaoTransfer.getAction().equals("success-transacao")) {
+                return ResponseEntity.status(HttpStatus.CREATED).body("Transacao criada com sucesso!");
+            } else if (transacaoTransfer.getAction().equals("failed-transacao")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(transacaoTransfer.getMessage());
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.toString());
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao criar a transacao");
     }
 }
