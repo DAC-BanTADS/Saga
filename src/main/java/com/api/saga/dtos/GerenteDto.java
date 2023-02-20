@@ -14,8 +14,6 @@ public class GerenteDto {
     private int numeroClientes;
     @NotBlank
     private String telefone;
-    @NotBlank
-    private String senha;
 
     public String getCpf() {
         return cpf;
@@ -55,13 +53,5 @@ public class GerenteDto {
 
     public void setTelefone(String telefone) {
         this.telefone = telefone;
-    }
-
-    public String getSenha() {
-        return senha;
-    }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
     }
 }
