@@ -22,4 +22,14 @@ public class UserProducer {
         UserTransfer userTransfer = new UserTransfer(userDto, action);
         return (UserTransfer) this.template.convertSendAndReceive(this.queue.getName(), userTransfer);
     }
+
+    public UserTransfer sendAndReceive(String message, String action) {
+        UserTransfer userTransfer = new UserTransfer(message, action);
+        return (UserTransfer) this.template.convertSendAndReceive(this.queue.getName(), userTransfer);
+    }
+
+    public UserTransfer sendAndReceive(UserDto userDto, String message, String action) {
+        UserTransfer userTransfer = new UserTransfer(userDto, message, action);
+        return (UserTransfer) this.template.convertSendAndReceive(this.queue.getName(), userTransfer);
+    }
 }

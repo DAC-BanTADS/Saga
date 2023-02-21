@@ -22,4 +22,14 @@ public class ClienteProducer {
         ClienteTransfer clienteTransfer = new ClienteTransfer(clienteDto, action);
         return (ClienteTransfer) this.template.convertSendAndReceive(this.queue.getName(), clienteTransfer);
     }
+
+    public ClienteTransfer sendAndReceive(String message, String action) {
+        ClienteTransfer clienteTransfer = new ClienteTransfer(message, action);
+        return (ClienteTransfer) this.template.convertSendAndReceive(this.queue.getName(), clienteTransfer);
+    }
+
+    public ClienteTransfer sendAndReceive(ClienteDto clienteDto, String message, String action) {
+        ClienteTransfer clienteTransfer = new ClienteTransfer(clienteDto, message, action);
+        return (ClienteTransfer) this.template.convertSendAndReceive(this.queue.getName(), clienteTransfer);
+    }
 }

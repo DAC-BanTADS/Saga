@@ -22,4 +22,14 @@ public class GerenteProducer {
         GerenteTransfer gerenteTransfer = new GerenteTransfer(gerenteDto, action);
         return (GerenteTransfer) this.template.convertSendAndReceive(this.queue.getName(), gerenteTransfer);
     }
+
+    public GerenteTransfer sendAndReceive(String action) {
+        GerenteTransfer gerenteTransfer = new GerenteTransfer(action);
+        return (GerenteTransfer) this.template.convertSendAndReceive(this.queue.getName(), gerenteTransfer);
+    }
+
+    public GerenteTransfer sendAndReceive(String message, String action) {
+        GerenteTransfer gerenteTransfer = new GerenteTransfer(message, action);
+        return (GerenteTransfer) this.template.convertSendAndReceive(this.queue.getName(), gerenteTransfer);
+    }
 }

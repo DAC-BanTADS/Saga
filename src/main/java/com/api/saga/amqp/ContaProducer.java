@@ -22,4 +22,14 @@ public class ContaProducer {
         ContaTransfer contaTransfer = new ContaTransfer(contaDto, action);
         return (ContaTransfer) this.template.convertSendAndReceive(this.queue.getName(), contaTransfer);
     }
+
+    public ContaTransfer sendAndReceive(String message, String action) {
+        ContaTransfer contaTransfer = new ContaTransfer(message, action);
+        return (ContaTransfer) this.template.convertSendAndReceive(this.queue.getName(), contaTransfer);
+    }
+
+    public ContaTransfer sendAndReceive(ContaDto contaDto, String message, String action) {
+        ContaTransfer contaTransfer = new ContaTransfer(contaDto, message, action);
+        return (ContaTransfer) this.template.convertSendAndReceive(this.queue.getName(), contaTransfer);
+    }
 }

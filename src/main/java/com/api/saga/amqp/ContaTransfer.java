@@ -1,6 +1,7 @@
 package com.api.saga.amqp;
 
 import java.io.Serializable;
+
 import com.api.saga.dtos.ContaDto;
 
 public class ContaTransfer implements Serializable {
@@ -11,8 +12,19 @@ public class ContaTransfer implements Serializable {
     public ContaTransfer() {
     }
 
+    public ContaTransfer(String message, String action) {
+        this.message = message;
+        this.action = action;
+    }
+
     public ContaTransfer(ContaDto contaDto, String action) {
         this.contaDto = contaDto;
+        this.action = action;
+    }
+
+    public ContaTransfer(ContaDto contaDto, String message, String action) {
+        this.contaDto = contaDto;
+        this.message = message;
         this.action = action;
     }
 

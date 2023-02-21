@@ -11,8 +11,19 @@ public class ClienteTransfer implements Serializable {
     public ClienteTransfer() {
     }
 
+    public ClienteTransfer(String message, String action) {
+        this.message = message;
+        this.action = action;
+    }
+
     public ClienteTransfer(ClienteDto clienteDto, String action) {
         this.clienteDto = clienteDto;
+        this.action = action;
+    }
+
+    public ClienteTransfer(ClienteDto clienteDto, String message, String action) {
+        this.clienteDto = clienteDto;
+        this.message = message;
         this.action = action;
     }
 

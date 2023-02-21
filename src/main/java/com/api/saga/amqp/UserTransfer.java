@@ -11,8 +11,19 @@ public class UserTransfer implements Serializable {
     public UserTransfer() {
     }
 
+    public UserTransfer(String message, String action) {
+        this.message = message;
+        this.action = action;
+    }
+
     public UserTransfer(UserDto userDto, String action) {
         this.userDto = userDto;
+        this.action = action;
+    }
+
+    public UserTransfer(UserDto userDto, String message, String action) {
+        this.userDto = userDto;
+        this.message = message;
         this.action = action;
     }
 
