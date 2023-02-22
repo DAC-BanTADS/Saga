@@ -1,5 +1,6 @@
 package com.api.saga.amqp;
 
+import com.api.saga.dtos.ClienteDto;
 import com.api.saga.dtos.GerenteDto;
 import java.io.Serializable;
 
@@ -22,6 +23,12 @@ public class GerenteTransfer implements Serializable {
 
     public GerenteTransfer(GerenteDto gerenteDto, String action) {
         this.gerenteDto = gerenteDto;
+        this.action = action;
+    }
+
+    public GerenteTransfer(GerenteDto gerenteDto, String message, String action) {
+        this.gerenteDto = gerenteDto;
+        this.message = message;
         this.action = action;
     }
 

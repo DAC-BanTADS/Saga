@@ -2,13 +2,13 @@ package com.api.saga.controllers;
 
 import com.api.saga.amqp.*;
 import com.api.saga.dtos.*;
-import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -30,11 +30,11 @@ public class SagaController {
         try {
             GerenteTransfer gerenteTransfer = gerenteProducer.sendAndReceive("min-gerente");
 
-            if (gerenteTransfer.getAction().equals("success-gerente")) {
+            if (!Objects.isNull(gerenteTransfer) && gerenteTransfer.getAction().equals("success-gerente")) {
 
                 ClienteTransfer clienteTransfer = clienteProducer.sendAndReceive(clienteDto, "save-cliente");
 
-                if (clienteTransfer.getAction().equals("success-cliente")) {
+                if (!Objects.isNull(clienteTransfer) && clienteTransfer.getAction().equals("success-cliente")) {
 
                     ContaDto contaDto = new ContaDto();
 
@@ -53,7 +53,7 @@ public class SagaController {
 
                     ContaTransfer contaTransfer = contaProducer.sendAndReceive(contaDto, "save-conta");
 
-                    if (contaTransfer.getAction().equals("success-conta")) {
+                    if (!Objects.isNull(contaTransfer) && contaTransfer.getAction().equals("success-conta")) {
 
                         UUID uuid = UUID.randomUUID();
                         String password = uuid.toString().replaceAll("-", "");
@@ -67,52 +67,51 @@ public class SagaController {
 
                         UserTransfer userTransfer = userProducer.sendAndReceive(userDto, "save-user");
 
-                        if (userTransfer.getAction().equals("success-user")) {
+                        if (!Objects.isNull(userTransfer) && userTransfer.getAction().equals("success-user")) {
 
                             gerenteTransfer = gerenteProducer.sendAndReceive(gerenteTransfer.getMessage(), "add-one-cliente");
 
-                            if (gerenteTransfer.getAction().equals("success-gerente")) {
+                            if (!Objects.isNull(gerenteTransfer) && gerenteTransfer.getAction().equals("success-gerente")) {
 
                                 return ResponseEntity.status(HttpStatus.CREATED).body("Cliente, Conta e Usuário criados com sucesso!");
 
-                            } else if (gerenteTransfer.getAction().equals("failed-gerente")) {
+                            } else if (Objects.isNull(gerenteTransfer) || gerenteTransfer.getAction().equals("failed-gerente")) {
                                 clienteTransfer = clienteProducer.sendAndReceive(clienteTransfer.getMessage(), "delete-cliente");
                                 contaTransfer = contaProducer.sendAndReceive(clienteTransfer.getMessage(), "delete-conta");
                                 userTransfer = userProducer.sendAndReceive(clienteDto.getEmail(), "delete-user");
                                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                                        gerenteTransfer.getMessage() + ","
-                                                + userTransfer.getMessage() + ", "
-                                                + contaTransfer.getMessage() + " e "
-                                                + clienteTransfer.getMessage()
+                                        "Houve erro ao tentar adicionar um cliente ao número de clientes do gerente."
                                 );
                             }
 
-                        } else if (userTransfer.getAction().equals("failed-user")) {
+                        } else if (Objects.isNull(userTransfer) || userTransfer.getAction().equals("failed-user")) {
                             clienteTransfer = clienteProducer.sendAndReceive(clienteTransfer.getMessage(), "delete-cliente");
                             contaTransfer = contaProducer.sendAndReceive(clienteTransfer.getMessage(), "delete-conta");
                             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                                    userTransfer.getMessage() + ", "
-                                            + contaTransfer.getMessage() + " e "
-                                            + clienteTransfer.getMessage()
+                                    "Houve erro ao tentar salvar um usuáro para o cliente."
                             );
                         }
 
-                    } else if (contaTransfer.getAction().equals("failed-conta")) {
+                    } else if (Objects.isNull(contaTransfer) || contaTransfer.getAction().equals("failed-conta")) {
                         clienteTransfer = clienteProducer.sendAndReceive(clienteTransfer.getMessage(), "delete-cliente");
                         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                                contaTransfer.getMessage() + " e " + clienteTransfer.getMessage()
+                                "Houve erro ao tentar salvar uma conta para o cliente."
                         );
                     }
 
-                } else if (clienteTransfer.getAction().equals("failed-cliente")) {
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(clienteTransfer.getMessage());
+                } else if (Objects.isNull(clienteTransfer) || clienteTransfer.getAction().equals("failed-cliente")) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                            "Houve erro ao tentar criar um cliente."
+                    );
                 }
 
-            } else if (gerenteTransfer.getAction().equals("failed-gerente")) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(gerenteTransfer.getMessage());
+            } else if (Objects.isNull(gerenteTransfer) || gerenteTransfer.getAction().equals("failed-gerente")) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                        "Houve erro ao tentar selecionar o gerente com menos clientes."
+                );
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.toString());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao criar o cliente: " + e.getMessage());
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao criar o cliente");
     }
@@ -130,11 +129,11 @@ public class SagaController {
 
             ContaTransfer contaTransfer = contaProducer.sendAndReceive(contaDto, id.toString(), "update-limite");
 
-            if (contaTransfer.getAction().equals("success-conta")) {
+            if (!Objects.isNull(contaTransfer) && contaTransfer.getAction().equals("success-conta")) {
 
                 ClienteTransfer clienteTransfer = clienteProducer.sendAndReceive(clienteDto, id.toString(), "update-cliente");
 
-                if (clienteTransfer.getAction().equals("success-cliente")) {
+                if (!Objects.isNull(clienteTransfer) && clienteTransfer.getAction().equals("success-cliente")) {
 
                     UserDto userDto = new UserDto();
 
@@ -146,11 +145,11 @@ public class SagaController {
                             "update-user"
                     );
 
-                    if (userTransfer.getAction().equals("success-user")) {
+                    if (!Objects.isNull(userTransfer) && userTransfer.getAction().equals("success-user")) {
 
                         return ResponseEntity.status(HttpStatus.OK).body("Cliente atualizado com sucesso!");
 
-                    } else if (userTransfer.getAction().equals("failed-user")) {
+                    } else if (Objects.isNull(userTransfer) || userTransfer.getAction().equals("failed-user")) {
                         clienteDto.setEmail(clienteTransfer.getMessage());
                         clienteTransfer = clienteProducer.sendAndReceive(
                                 clienteDto,
@@ -160,26 +159,25 @@ public class SagaController {
                         contaDto.setLimite(Double.parseDouble(contaTransfer.getMessage()));
                         contaTransfer = contaProducer.sendAndReceive(contaDto, id.toString(), "update-limite");
                         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                                userTransfer.getMessage() + ", "
-                                        + clienteTransfer.getMessage() + "e "
-                                        + contaTransfer.getMessage()
+                                "Houve erro ao atualizar o usuário."
                         );
                     }
 
-                } else if (clienteTransfer.getAction().equals("failed-cliente")) {
+                } else if (Objects.isNull(clienteTransfer) || clienteTransfer.getAction().equals("failed-cliente")) {
                     contaDto.setLimite(Double.parseDouble(contaTransfer.getMessage()));
                     contaTransfer = contaProducer.sendAndReceive(contaDto, id.toString(), "update-limite");
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                            clienteTransfer.getMessage() + ", "
-                                    + contaTransfer.getMessage()
+                            "Houve erro ao atualizar o clieente."
                     );
                 }
 
-            } else if (contaTransfer.getAction().equals("failed-conta")) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(contaTransfer.getMessage());
+            } else if (Objects.isNull(contaTransfer) || contaTransfer.getAction().equals("failed-conta")) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                        "Houve erro ao atualizar o limite da conta."
+                );
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.toString());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao atualizar o cliente: " + e.getMessage());
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao atualizar o cliente");
     }
@@ -189,26 +187,26 @@ public class SagaController {
         try {
             ContaTransfer contaTransfer = contaProducer.sendAndReceive(id.toString(), "delete-conta");
 
-            if (contaTransfer.getAction().equals("success-conta")) {
+            if (!Objects.isNull(contaTransfer) && contaTransfer.getAction().equals("success-conta")) {
 
                 GerenteTransfer gerenteTransfer = gerenteProducer.sendAndReceive(
                         contaTransfer.getContaDto().getIdGerente().toString(),
                         "sub-one-cliente"
                 );
 
-                if (gerenteTransfer.getAction().equals("success-gerente")) {
+                if (!Objects.isNull(gerenteTransfer) && gerenteTransfer.getAction().equals("success-gerente")) {
 
                     ClienteTransfer clienteTransfer = clienteProducer.sendAndReceive(id.toString(), "delete-cliente");
 
-                    if (clienteTransfer.getAction().equals("success-cliente")) {
+                    if (!Objects.isNull(clienteTransfer) && clienteTransfer.getAction().equals("success-cliente")) {
 
                         UserTransfer userTransfer = userProducer.sendAndReceive(clienteTransfer.getClienteDto().getEmail(), "delete-user");
 
-                        if (userTransfer.getAction().equals("success-user")) {
+                        if (!Objects.isNull(userTransfer) && userTransfer.getAction().equals("success-user")) {
 
                             return ResponseEntity.status(HttpStatus.OK).body("Cliente, Conta e Usuário deletados com sucesso!");
 
-                        } else if (userTransfer.getAction().equals("failed-user")) {
+                        } else if (Objects.isNull(userTransfer) || userTransfer.getAction().equals("failed-user")) {
                             clienteTransfer = clienteProducer.sendAndReceive(clienteTransfer.getClienteDto(), "save-cliente");
                             gerenteTransfer = gerenteProducer.sendAndReceive(
                                     contaTransfer.getContaDto().getIdGerente().toString(),
@@ -216,41 +214,37 @@ public class SagaController {
                             );
                             contaTransfer = contaProducer.sendAndReceive(contaTransfer.getContaDto(), "save-conta");
                             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                                    userTransfer.getMessage() + ", "
-                                            + clienteTransfer.getMessage() + ", "
-                                            + gerenteTransfer.getMessage() + "e "
-                                            + contaTransfer.getMessage()
+                                    "Houve erro ao deletar o usuário."
                             );
                         }
 
-                    } else if (clienteTransfer.getAction().equals("failed-cliente")) {
+                    } else if (Objects.isNull(clienteTransfer) || clienteTransfer.getAction().equals("failed-cliente")) {
                         gerenteTransfer = gerenteProducer.sendAndReceive(
                                 contaTransfer.getContaDto().getIdGerente().toString(),
                                 "add-one-cliente"
                         );
                         contaTransfer = contaProducer.sendAndReceive(contaTransfer.getContaDto(), "save-conta");
                         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                                clienteTransfer.getMessage() + ", "
-                                        + gerenteTransfer.getMessage() + "e "
-                                        + contaTransfer.getMessage()
+                                "Houve erro ao deletar o cliente."
                         );
                     }
 
-                } else if (gerenteTransfer.getAction().equals("failed-gerente")) {
+                } else if (Objects.isNull(gerenteTransfer) || gerenteTransfer.getAction().equals("failed-gerente")) {
                     contaTransfer = contaProducer.sendAndReceive(contaTransfer.getContaDto(), "save-conta");
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                            gerenteTransfer.getMessage() + ", "
-                                    + contaTransfer.getMessage()
+                            "Houve erro ao diminuir um cliente do gerente."
                     );
                 }
 
-            } else if (contaTransfer.getAction().equals("failed-conta")) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(contaTransfer.getMessage());
+            } else if (Objects.isNull(contaTransfer) || contaTransfer.getAction().equals("failed-conta")) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                        "Houve erro ao deletar a conta."
+                );
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.toString());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao deletar o cliente: " + e.getMessage());
         }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao criar a conta");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao deletar o cliente");
     }
 
     @PostMapping("/gerente")
@@ -259,7 +253,7 @@ public class SagaController {
             // PEGA O GERENTE COM MAIS CLIENTES
             GerenteTransfer gerenteTransfer = gerenteProducer.sendAndReceive("max-gerente");
 
-            if (gerenteTransfer.getAction().equals("failed-gerente")) {
+            if (Objects.isNull(gerenteTransfer) || gerenteTransfer.getAction().equals("failed-gerente")) {
                 // SALVA UM NOVO GERENTE
                 // COMO NÃO VEIO NENHUM GERENTE NA CONSULTA ANTERIOR
                 // SIGNIFICA QUE ESTAMOS LIDANDO COM O PRIMEIRO GERENTE
@@ -267,8 +261,10 @@ public class SagaController {
                 gerenteDto.setNumeroClientes(0);
                 gerenteTransfer = gerenteProducer.sendAndReceive(gerenteDto, "save-gerente");
 
-                if (gerenteTransfer.getAction().equals("failed-gerente")) {
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(gerenteTransfer.getMessage());
+                if (Objects.isNull(gerenteTransfer) || gerenteTransfer.getAction().equals("failed-gerente")) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                            "Houve erro ao salvar o gerente."
+                    );
                 }
 
                 // CRIA UM NOVO USUÁRIO PRO NOVO GERENTE
@@ -284,8 +280,12 @@ public class SagaController {
 
                 UserTransfer userTransfer = userProducer.sendAndReceive(userDto, "save-user");
 
-                if (userTransfer.getAction().equals("failed-user")) {
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(userTransfer.getMessage());
+                if (Objects.isNull(userTransfer) || userTransfer.getAction().equals("failed-user")) {
+                    // EXCLUIR O GERENTE QUE FOI CRIADO ANTES
+                    gerenteTransfer = gerenteProducer.sendAndReceive(gerenteTransfer.getMessage(), "delete-gerente");
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                            "Houve erro ao salvar o usuário."
+                    );
                 }
 
                 return ResponseEntity.status(HttpStatus.CREATED).body("Gerente e Usuário criados com sucesso!");
@@ -293,18 +293,24 @@ public class SagaController {
 
             // TIRA UM CLIENTE DESSE GERENTE QUE FOI PEGO
             String idGerente = gerenteTransfer.getMessage();
-            gerenteTransfer = gerenteProducer.sendAndReceive(idGerente,  "sub-one-cliente");
+            gerenteTransfer = gerenteProducer.sendAndReceive(idGerente, "sub-one-cliente");
 
-            if (gerenteTransfer.getAction().equals("failed-gerente")) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(gerenteTransfer.getMessage());
+            if (Objects.isNull(gerenteTransfer) || gerenteTransfer.getAction().equals("failed-gerente")) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                        "Houve erro ao diminuir um cliente do gerente que possui mais clientes."
+                );
             }
 
             // SALVA UM NOVO GERENTE
             gerenteDto.setNumeroClientes(1);
             gerenteTransfer = gerenteProducer.sendAndReceive(gerenteDto, "save-gerente");
 
-            if (gerenteTransfer.getAction().equals("failed-gerente")) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(gerenteTransfer.getMessage());
+            if (Objects.isNull(gerenteTransfer) || gerenteTransfer.getAction().equals("failed-gerente")) {
+                // ADICIONAR UM CLIENTE AO GERENTE QUE TINHA PERDIDO UM
+                gerenteTransfer = gerenteProducer.sendAndReceive(idGerente, "add-one-cliente");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                        "Houve erro ao salvar o gerente."
+                );
             }
 
             // PEGA UMA DAS CONTAS DO GERENTE QUE TINHA MAIS CLIENTES
@@ -312,8 +318,14 @@ public class SagaController {
             String idAntigoAndAtual = idGerente + "+" + gerenteTransfer.getMessage();
             ContaTransfer contaTransfer = contaProducer.sendAndReceive(idAntigoAndAtual, "update-gerente");
 
-            if (contaTransfer.getAction().equals("failed-conta")) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(contaTransfer.getMessage());
+            if (Objects.isNull(contaTransfer) || contaTransfer.getAction().equals("failed-conta")) {
+                // ADICIONAR UM CLIENTE AO GERENTE QUE TINHA PERDIDO UM
+                gerenteTransfer = gerenteProducer.sendAndReceive(idGerente, "add-one-cliente");
+                // REMOVER O GERENTE QUE FOI CRIADO
+                gerenteTransfer = gerenteProducer.sendAndReceive(gerenteTransfer.getMessage(), "delete-gerente");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                        "Houve erro ao alterar a referência da conta."
+                );
             }
 
             // CRIA UM NOVO USUÁRIO PRO NOVO GERENTE
@@ -329,17 +341,163 @@ public class SagaController {
 
             UserTransfer userTransfer = userProducer.sendAndReceive(userDto, "save-user");
 
-            if (userTransfer.getAction().equals("failed-user")) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(userTransfer.getMessage());
+            if (Objects.isNull(userTransfer) || userTransfer.getAction().equals("failed-user")) {
+                // ADICIONAR UM CLIENTE AO GERENTE QUE TINHA PERDIDO UM
+                gerenteTransfer = gerenteProducer.sendAndReceive(idGerente, "add-one-cliente");
+                // REMOVER O GERENTE QUE FOI CRIADO
+                gerenteTransfer = gerenteProducer.sendAndReceive(gerenteTransfer.getMessage(), "delete-gerente");
+                // REAPONTA A CONTA PARA O ANTIGO GERENTE
+                idAntigoAndAtual = gerenteTransfer.getMessage() + "+" + idGerente;
+                contaTransfer = contaProducer.sendAndReceive(idAntigoAndAtual, "update-gerente");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                        "Houve erro ao salvar o usuário."
+                );
             }
 
             return ResponseEntity.status(HttpStatus.CREATED).body("Gerente e Usuário criados com sucesso!");
 
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao criar o gerente");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao criar o gerente: " + e.getMessage());
         }
     }
 
+    @PutMapping("/gerente/{id}")
+    public ResponseEntity<Object> updateGerente(@PathVariable(value = "id") UUID id, @RequestBody GerenteDto gerenteDto) {
+        try {
+            GerenteTransfer gerenteTransfer = gerenteProducer.sendAndReceive(gerenteDto, id.toString(), "update-gerente");
+
+            if (!Objects.isNull(gerenteTransfer) && gerenteTransfer.getAction().equals("success-gerente")) {
+
+                UserDto userDto = new UserDto();
+
+                userDto.setEmail(gerenteDto.getEmail());
+
+                UserTransfer userTransfer = userProducer.sendAndReceive(
+                        userDto,
+                        gerenteTransfer.getMessage(),
+                        "update-user"
+                );
+
+                if (!Objects.isNull(userTransfer) && userTransfer.getAction().equals("success-user")) {
+
+                    return ResponseEntity.status(HttpStatus.OK).body("Gerente atualizado com sucesso!");
+
+                } else if (Objects.isNull(userTransfer) || userTransfer.getAction().equals("failed-user")) {
+                    gerenteDto.setEmail(gerenteTransfer.getMessage());
+                    gerenteTransfer = gerenteProducer.sendAndReceive(
+                            gerenteDto,
+                            id.toString(),
+                            "update-gerente"
+                    );
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                            "Houve erro ao atualizar o usuário."
+                    );
+                }
+
+            } else if (Objects.isNull(gerenteTransfer) || gerenteTransfer.getAction().equals("failed-gerente")) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                        "Houve erro ao atualizar o gerente."
+                );
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao atualizar o gerente: " + e.getMessage());
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao atualizar o gerente");
+    }
+
+    @DeleteMapping("/gerente/{id}")
+    public ResponseEntity<Object> deleteGerente(@PathVariable(value = "id") UUID id) {
+        try {
+            // PROCURAR O GERENTE QUE TÁ SENDO PASSADO PARA DELETAR
+            GerenteTransfer gerenteTransferDelete = gerenteProducer.sendAndReceive("get-gerente");
+
+            // CONSULTAR GERENTE COM MENOS CONTAS
+            GerenteTransfer gerenteTransfer = gerenteProducer.sendAndReceive("min-gerente");
+
+            if (Objects.isNull(gerenteTransfer)
+                    || gerenteTransfer.getAction().equals("failed-gerente")
+                    || gerenteTransferDelete.getGerenteDto().getNumeroClientes() == 0) {
+                // REMOVE O GERENTE PASSADO
+                gerenteTransfer = gerenteProducer.sendAndReceive(id.toString(), "delete-gerente");
+
+                if (Objects.isNull(gerenteTransfer) || gerenteTransfer.getAction().equals("failed-gerente")) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                            "Houve erro ao deletar o gerente."
+                    );
+                }
+
+                // REMOVE O USUÁRIO DO GERENTE
+                UserTransfer userTransfer = userProducer.sendAndReceive(gerenteTransfer.getGerenteDto().getEmail(), "delete-user");
+
+                if (Objects.isNull(userTransfer) || userTransfer.getAction().equals("failed-user")) {
+                    // READICIONA O GERENTE QUE FOI EXCLUÍDO
+                    gerenteTransfer = gerenteProducer.sendAndReceive(gerenteTransfer.getGerenteDto(), "save-gerente");
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                            "Houve erro ao deletar o usuário."
+                    );
+                }
+
+                return ResponseEntity.status(HttpStatus.CREATED).body("Gerente e Usuário deletados com sucesso!");
+            }
+
+            // SOMA UM CLIENTE DESSE GERENTE QUE FOI PEGO
+            String idGerente = gerenteTransfer.getMessage();
+            gerenteTransfer = gerenteProducer.sendAndReceive(idGerente,  "add-one-cliente");
+
+            if (Objects.isNull(gerenteTransfer) || gerenteTransfer.getAction().equals("failed-gerente")) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                        "Houve erro ao adicionar um cliente ao gerente."
+                );
+            }
+
+            // REMOVE O GERENTE PASSADO
+            gerenteTransfer = gerenteProducer.sendAndReceive(id.toString(), "delete-gerente");
+
+            if (Objects.isNull(gerenteTransfer) || gerenteTransfer.getAction().equals("failed-gerente")) {
+                // DIMINUIR UM CLIENTE DO QUE FOI ADICIONADO
+                gerenteTransfer = gerenteProducer.sendAndReceive(idGerente,  "sub-one-cliente");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                        "Houve erro ao deletar o gerente."
+                );
+            }
+
+            // ATRIBUIR A CONTA ASSOCIADA AO GERENTE QUE VAMOS EXCLUIR
+            // AO GERENTE QUE TEM MENOS CLIENTES, PARA QUE A CONTA NÃO FIQUE SEM GERÊNCIA
+            String idAntigoAndAtual = gerenteTransfer.getMessage() + "+" + idGerente;
+            ContaTransfer contaTransfer = contaProducer.sendAndReceive(idAntigoAndAtual, "update-gerente");
+
+            if (Objects.isNull(contaTransfer) || contaTransfer.getAction().equals("failed-conta")) {
+                // DIMINUIR UM CLIENTE DO QUE FOI ADICIONADO
+                gerenteTransfer = gerenteProducer.sendAndReceive(idGerente,  "sub-one-cliente");
+                // READICIONAR O GERENTE PASSADO
+                gerenteTransfer = gerenteProducer.sendAndReceive(gerenteTransfer.getGerenteDto(), "save-gerente");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                        "Houve erro ao alterar a referência da conta relacionada ao gerente."
+                );
+            }
+
+            // REMOVE O USUÁRIO DO GERENTE
+            UserTransfer userTransfer = userProducer.sendAndReceive(gerenteTransfer.getGerenteDto().getEmail(), "delete-user");
+
+            if (Objects.isNull(userTransfer) || userTransfer.getAction().equals("failed-user")) {
+                // DIMINUIR UM CLIENTE DO QUE FOI ADICIONADO
+                gerenteTransfer = gerenteProducer.sendAndReceive(idGerente,  "sub-one-cliente");
+                // READICIONAR O GERENTE PASSADO
+                gerenteTransfer = gerenteProducer.sendAndReceive(gerenteTransfer.getGerenteDto(), "save-gerente");
+                // REATRIBUIR AS REFERÊNCIAS DE CONTA
+                idAntigoAndAtual = idGerente + "+" + gerenteTransfer.getMessage();
+                contaTransfer = contaProducer.sendAndReceive(idAntigoAndAtual, "update-gerente");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                        "Houve erro ao deletar o usuário."
+                );
+            }
+
+            return ResponseEntity.status(HttpStatus.CREATED).body("Gerente e Usuário deletados com sucesso!");
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao deletar o gerente: " + e.getMessage());
+        }
+    }
 
     @PostMapping("/transacao")
     public ResponseEntity<Object> saveTransacao(@RequestBody TransacaoDto transacaoDto) {
