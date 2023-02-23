@@ -32,12 +32,6 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    @Qualifier("transacao")
-    public Queue transacaoQueue() {
-        return new Queue("transacao");
-    }
-
-    @Bean
     @Qualifier("user")
     public Queue userQueue() {
         return new Queue("user");
@@ -59,11 +53,6 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public TransacaoProducer transacaoProducer() {
-        return new TransacaoProducer();
-    }
-
-    @Bean
     public UserProducer userProducer() {
         return new UserProducer();
     }
@@ -76,7 +65,6 @@ public class RabbitMQConfig {
         idClassMapping.put("com.api.cliente.amqp.ClienteTransfer", ClienteTransfer.class);
         idClassMapping.put("com.api.conta.amqp.ContaTransfer", ContaTransfer.class);
         idClassMapping.put("com.api.gerente.amqp.GerenteTransfer", GerenteTransfer.class);
-        idClassMapping.put("com.api.transacao.amqp.TransacaoTransfer", TransacaoTransfer.class);
         idClassMapping.put("com.api.user.amqp.UserTransfer", UserTransfer.class);
 
         classMapper.setIdClassMapping(idClassMapping);
