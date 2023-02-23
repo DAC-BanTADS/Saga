@@ -21,8 +21,6 @@ public class SagaController {
     @Autowired
     private GerenteProducer gerenteProducer;
     @Autowired
-    private TransacaoProducer transacaoProducer;
-    @Autowired
     private UserProducer userProducer;
 
     @PostMapping("/cliente")
@@ -514,21 +512,5 @@ public class SagaController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao deletar o gerente: " + e.getMessage());
         }
-    }
-
-    @PostMapping("/transacao")
-    public ResponseEntity<Object> saveTransacao(@RequestBody TransacaoDto transacaoDto) {
-        try {
-            TransacaoTransfer transacaoTransfer = transacaoProducer.sendAndReceive(transacaoDto, "save-transacao");
-
-            if (transacaoTransfer.getAction().equals("success-transacao")) {
-                return ResponseEntity.status(HttpStatus.CREATED).body("Transacao criada com sucesso!");
-            } else if (transacaoTransfer.getAction().equals("failed-transacao")) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(transacaoTransfer.getMessage());
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.toString());
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao criar a transacao");
     }
 }
